@@ -1,8 +1,8 @@
 import socket
 import threading
 
-server=socket.socket(socket.AF_INET, socket.SOCK_STREAM) #use IPV4, and stream (think TCP)
-server.bind(("localhost", 2046)) #Normally we'd use use the proper host name
+server=socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
+server.bind(("localhost", 2046)) 
 server.listen(5) #Allow up to 5 queued connections
 
 def polite_chatter(client_one, client_two):
@@ -16,7 +16,7 @@ def polite_chatter(client_one, client_two):
             break
         client_one.sendall(two_to_one)
 
-while True: #Just keep accepting pairs of connections!
+while True: 
     (client_one, add_one) = server.accept()
     print("Accepted client A:"+str(add_one))
     (client_two, add_two) = server.accept()
