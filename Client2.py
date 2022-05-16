@@ -3,7 +3,7 @@ import time
 import socket
 import numpy as np
 
-client_two = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # use IPV4, and stream (think TCP)
+client_two = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # use IPV4)
 client_two.connect(("localhost", 2046))
 print("Accepted client:" + str(client_two))
 
@@ -28,7 +28,7 @@ def enable_buttons():
 
 
 
-# gets the response of the other player******
+# gets the response 
 def send(selection):
     global game_over
     global client_two
@@ -106,7 +106,7 @@ def get_next_open_row(board, col):
             return r
 
 
-# flips the board to it's correct orientation
+# flips the board to the correct orientation
 def flip_board(board):
     return np.flip(board, 0)
 
@@ -151,7 +151,7 @@ player_two = 2
 
 
 # generates the tkinter window with all the buttons
-# crwates closer with selections using shooper
+# creates closure with selections using shooper
 def gen_window():
     win = tkinter.Tk()
     s = tkinter.StringVar(win, name="msg")
