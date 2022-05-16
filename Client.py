@@ -3,7 +3,7 @@ import socket
 import time
 import numpy as np
 
-client_one = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # use IPV4, and stream (think TCP)
+client_one = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # use IPV4
 client_one.connect(("localhost", 2046))
 print("Accepted client:" + str(client_one))
 
@@ -153,7 +153,7 @@ player_two = 2
 
 
 # generates the tkinter window with all the buttons
-# crwates closer with selections using shooper
+# creates closure with selections using shooper
 def gen_window():
     win = tkinter.Tk()
     s = tkinter.StringVar(win, name="msg")
