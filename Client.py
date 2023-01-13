@@ -3,177 +3,204 @@ import socket
 import time
 import numpy as np
 
-client_one = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # use IPV4
-client_one.connect(("localhost", 2046))
-print("Accepted client:" + str(client_one))
-
-
-
-# disables buttons
-def disable_buttons():
-    for i in range(7):
-        id = chr(ord('A') + i)
-        button = top.children['b_' + id]
-        button['state'] = tkinter.DISABLED
-
-
-# enables buttons
-def enable_buttons():
-    for i in range(7):
-        id = chr(ord('A') + i)
-        button = top.children['b_' + id]
-        button['state'] = tkinter.NORMAL
-
-
-
-
-# gets the response of the other player******
-def send(selection):
+class Client:
     global game_over
-    global client_one
-
-    if is_valid_location(board, selection):
-        id = chr(ord('A') + selection)
-        top.setvar("extra","you selected column:" + id)
-        row = get_next_open_row(board, selection)
-        drop_piece(board, row, selection, player_one)
-        rec_data = flip_board(board)
-        top.setvar('msg', rec_data)
-        disable_buttons()
-        if winning_move(board, player_one):
-            disable_buttons()
-            top.setvar("extra","Player one wins!")
-            time.sleep(3)
-            game_over = True
-
-    else:
-        top.setvar("extra", "You picked an invalid column.")
-        pass
-
-    s = str(selection)  # input the board
-    client_one.sendall(s.encode())
-    r = int(client_one.recv(1024).decode())
+    global row_count
+    global column_count
+    global board
+    global client
+    global symbol
+    global oppSymbol
+    row_count = 6
+    column_count = 7
+    global top
+   
+    def __init__(self, state, symbol, oppSymbol):
+        self.game_over = state
+        self.symbol = symbol
+        self.oppSymbol = oppSymbol
+        self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # use IPV4
+        self.client.connect(("localhost", 2046))
+        self.board = self.create_board()
+        self.top = self.gen_window()
+        while not game_over:
+            top.mainloop()
 
 
-    if is_valid_location(board, r):
-        id = chr(ord('A') + r)
-        top.setvar("extra", "Player two selected column:" + id)
-        row = get_next_open_row(board, r)
-        drop_piece(board, row, r, player_two)
-        rec_data = flip_board(board)
-        top.setvar('msg', rec_data)
-        enable_buttons()
-        if winning_move(board, player_two):
-            disable_buttons()
-            top.setvar("extra","Player two wins!")
-            time.sleep(3)
-            game_over = True
-
-    else:
-        top.setvar("extra", "Player two picked an invalid column.")
-        pass
+    # disables buttons
+    def disable_buttons(self):
+        for i in range(7):
+            id = chr(ord('A') + i)
+            button = top.children['b_' + id]
+            button['state'] = tkinter.DISABLED
 
 
+    # enables buttons
+    def enable_buttons(self):
+        for i in range(7):
+            id = chr(ord('A') + i)
+            button = top.children['b_' + id]
+            button['state'] = tkinter.NORMAL
 
 
-
-# closure function
-def shooper(i):
-    def shoop():
-        send(i)
-
-    return shoop
+    # closure function
+    def shooper(self, i):
+        def shoop():
+            self.send(i)
+        return shoop
 
 
-# creates the grid represented by a matrix
-def create_board():
-    board = np.zeros((6, 7))
-    return board
+    # creates the grid represented by a matrix
+    def create_board(self):
+        board = np.zeros((6, 7))
+        return board
 
 
-# drops the piece in the specified location
-def drop_piece(board, row, col, piece):
-    board[row][col] = piece
+    # drops the piece in the specified location
+    def drop_piece(self, board, row, col, piece):
+        board[row][col] = piece
 
 
-# checks if the column is full
-def is_valid_location(board, col):
-    if board[5][col]==0:
-        return True
+    # checks if the column is full
+    def is_valid_location(self, board, col):
+        if board[5][col]==0:
+            return True
 
 
-def get_next_open_row(board, col):
-    for r in range(row_count):
-        if board[r][col] == 0:
-            return r
-
-
-# flips the board to it's correct orientation
-def flip_board(board):
-    return np.flip(board, 0)
-
-
-# checks for a win with recent drop
-def winning_move(board, piece):
-    # Check horizontal locations for win
-    for c in range(column_count - 3):
+    def get_next_open_row(self, board, col):
         for r in range(row_count):
-            if board[r][c] == piece and board[r][c + 1] == piece and board[r][c + 2] == piece and board[r][
-                c + 3] == piece:
-                return True
+            if board[r][col] == 0:
+                return r
 
-    # Check vertical locations for win
-    for c in range(column_count - 3):
-        for r in range(row_count):
-            if board[r][c] == piece and board[r + 1][c] == piece and board[r + 2][c] == piece and board[r + 3][
-                c] == piece:
-                return True
 
-        # Check positive diagonal locations for win
+    # flips the board to it's correct orientation
+    def flip_board(self, board):
+        return np.flip(board, 0)
+
+
+    # checks for a win with recent drop
+    def winning_move(self, board, piece):
+        # Check horizontal locations for win
         for c in range(column_count - 3):
-            for r in range(row_count - 3):
-                if board[r][c] == piece and board[r + 1][c + 1] == piece and board[r + 2][c + 2] == piece and \
-                        board[r + 3][c + 3] == piece:
+            for r in range(row_count):
+                if board[r][c] == piece and board[r][c + 1] == piece and board[r][c + 2] == piece and board[r][
+                    c + 3] == piece:
                     return True
 
-        # Check negative diagonal locations for win
+        # Check vertical locations for win
         for c in range(column_count - 3):
-            for r in range(3, row_count):
-                if board[r][c] == piece and board[r - 1][c + 1] == piece and board[r - 2][c + 2] == piece and \
-                        board[r - 3][c + 3] == piece:
+            for r in range(row_count):
+                if board[r][c] == piece and board[r + 1][c] == piece and board[r + 2][c] == piece and board[r + 3][
+                    c] == piece:
                     return True
 
+            # Check positive diagonal locations for win
+            for c in range(column_count - 3):
+                for r in range(row_count - 3):
+                    if board[r][c] == piece and board[r + 1][c + 1] == piece and board[r + 2][c + 2] == piece and \
+                            board[r + 3][c + 3] == piece:
+                        return True
 
-board = create_board()
-game_over = False
-row_count = 6
-column_count = 7
-player_one = 1
-player_two = 2
-
-
-# generates the tkinter window with all the buttons
-# creates closure with selections using shooper
-def gen_window():
-    win = tkinter.Tk()
-    s = tkinter.StringVar(win, name="msg")
-    t =tkinter.StringVar(win,name="extra")
-    text = tkinter.Label(win, width=34, height=17, font="courier", bg="white", textvariable=t)
-    text.grid(column=0,row = 3, columnspan = 7)
-    lbl = tkinter.Label(win, width=34, height=17, font="courier", bg="white", textvariable=s)
-    lbl.grid(column=0, row=0, columnspan=7)
-
-    for i in range(7):
-        id = chr(ord('A') + i)
-        b = tkinter.Button(win, text=id, name="b_" + id, fg="blue", width="7", command=shooper(i))
-        b.grid(column=i, row=1)
-    win.setvar("msg", board)
+            # Check negative diagonal locations for win
+            for c in range(column_count - 3):
+                for r in range(3, row_count):
+                    if board[r][c] == piece and board[r - 1][c + 1] == piece and board[r - 2][c + 2] == piece and \
+                            board[r - 3][c + 3] == piece:
+                        return True
 
 
-    return win
+    # generates the tkinter window with all the buttons
+    def gen_window(self):
+        win = tkinter.Tk()
+        s = tkinter.StringVar(win, name="grid")
+        t =tkinter.StringVar(win,name="extra")
+        text = tkinter.Label(win, width=34, height=17, font="courier", bg="white", textvariable=t)
+        text.grid(column=0,row = 3, columnspan = 7)
+        lbl = tkinter.Label(win, width=34, height=17, font="courier", bg="white", textvariable=s)
+        lbl.grid(column=0, row=0, columnspan=7)
+
+        for i in range(7):
+            id = chr(ord('A') + i)
+            b = tkinter.Button(win, text=id, name="b_" + id, fg="blue", width="7", command=self.shooper(i))
+            b.grid(column=i, row=1)
+        win.setvar("grid", board)
+
+        return win
+
+
+    def send(self,selection):
+        if self.is_valid_location(board, selection):
+            id = chr(ord('A') + selection)
+            top.setvar("extra","you selected column:" + id)
+            row = self.get_next_open_row(board, selection)
+            self.drop_piece(board, row, selection, symbol)
+            rec_data = self.flip_board(board)
+            top.setvar('grid', rec_data)
+            self.disable_buttons()
+            s = str(selection)  # input the board
+            client.sendall(s.encode())
+            import time
+            time.sleep(0.5)
+            if self.winning_move(board, symbol):
+                self.disable_buttons()
+                top.setvar("extra", symbol + " wins!")
+                time.sleep(3)
+                game_over = True
+        else:
+            top.setvar("extra", symbol + " picked an invalid column.")
+            pass
+        
+        
+    def recieve(self):
+        import time
+        time.sleep(0.5)
+        r = int(client.recv(1024).decode())
+        if self.is_valid_location(board, r):
+            id = chr(ord('A') + r)
+            top.setvar("extra", "Player two selected column:" + id)
+            row = self.get_next_open_row(board, r)
+            self.drop_piece(board, row, r, oppSymbol)
+            rec_data = self.flip_board(board)
+            top.setvar('grid', rec_data)
+            self.enable_buttons()
+            if self.winning_move(board, oppSymbol):
+                self.disable_buttons()
+                top.setvar("extra", oppSymbol + " wins!")
+                time.sleep(3)
+                game_over = True
+        else:
+            top.setvar("extra", oppSymbol + " picked an invalid column.")
+            pass
 
 
 
-top = gen_window()
-while not game_over:
-    top.mainloop()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
