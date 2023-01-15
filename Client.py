@@ -1,4 +1,4 @@
-import tkinter
+import tkinter 
 import socket
 import time
 import numpy as np
@@ -6,32 +6,33 @@ import numpy as np
 class Client:
     global game_over
     global row_count
-    global column_count
+    global column_count 
     global board
     global client
-    global symbol
-    global oppSymbol
+    global Symbol
+    global OppSymbol
+    global top
+    global Name
     row_count = 6
     column_count = 7
-    global top
-   
+
     def __init__(self, state, symbol, oppSymbol):
         self.game_over = state
-        self.symbol = symbol
-        self.oppSymbol = oppSymbol
+        self.Symbol = symbol
+        self.OppSymbol = oppSymbol
         self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # use IPV4
         self.client.connect(("localhost", 2046))
         self.board = self.create_board()
         self.top = self.gen_window()
-        while not game_over:
-            top.mainloop()
+        while not self.game_over:
+            self.top.mainloop()
 
 
     # disables buttons
     def disable_buttons(self):
         for i in range(7):
             id = chr(ord('A') + i)
-            button = top.children['b_' + id]
+            button = self.top.children['b_' + id]
             button['state'] = tkinter.DISABLED
 
 
@@ -39,7 +40,7 @@ class Client:
     def enable_buttons(self):
         for i in range(7):
             id = chr(ord('A') + i)
-            button = top.children['b_' + id]
+            button = self.top.children['b_' + id]
             button['state'] = tkinter.NORMAL
 
 
@@ -52,8 +53,8 @@ class Client:
 
     # creates the grid represented by a matrix
     def create_board(self):
-        board = np.zeros((6, 7))
-        return board
+        self.board = np.zeros((6, 7))
+        return self.board
 
 
     # drops the piece in the specified location
@@ -113,7 +114,7 @@ class Client:
     def gen_window(self):
         win = tkinter.Tk()
         s = tkinter.StringVar(win, name="grid")
-        t =tkinter.StringVar(win,name="extra")
+        t = tkinter.StringVar(win,name="extra")
         text = tkinter.Label(win, width=34, height=17, font="courier", bg="white", textvariable=t)
         text.grid(column=0,row = 3, columnspan = 7)
         lbl = tkinter.Label(win, width=34, height=17, font="courier", bg="white", textvariable=s)
@@ -123,53 +124,51 @@ class Client:
             id = chr(ord('A') + i)
             b = tkinter.Button(win, text=id, name="b_" + id, fg="blue", width="7", command=self.shooper(i))
             b.grid(column=i, row=1)
-        win.setvar("grid", board)
+        win.setvar("grid", self.board)
 
         return win
 
 
     def send(self,selection):
-        if self.is_valid_location(board, selection):
+        if self.is_valid_location(self.board, selection):
             id = chr(ord('A') + selection)
-            top.setvar("extra","you selected column:" + id)
-            row = self.get_next_open_row(board, selection)
-            self.drop_piece(board, row, selection, symbol)
-            rec_data = self.flip_board(board)
-            top.setvar('grid', rec_data)
+            self.top.setvar("extra","you selected column:" + id)
+            row = self.get_next_open_row(self.board, selection)
+            self.drop_piece(self.board, row, selection, self.Symbol)
+            rec_data = self.flip_board(self.board)
+            self.top.setvar('grid', rec_data)
             self.disable_buttons()
             s = str(selection)  # input the board
-            client.sendall(s.encode())
-            import time
+            self.client.sendall(s.encode())
             time.sleep(0.5)
-            if self.winning_move(board, symbol):
+            if self.winning_move(self.board, self.Symbol):
                 self.disable_buttons()
-                top.setvar("extra", symbol + " wins!")
+                self.top.setvar("extra", self.Symbol + " wins!")
                 time.sleep(3)
-                game_over = True
+                self.game_over = True
         else:
-            top.setvar("extra", symbol + " picked an invalid column.")
+            self.top.setvar("extra", self.Symbol + " picked an invalid column.")
             pass
         
         
     def recieve(self):
-        import time
         time.sleep(0.5)
-        r = int(client.recv(1024).decode())
-        if self.is_valid_location(board, r):
+        r = int(self.client.recv(1024).decode())
+        if self.is_valid_location(self.board, r):
             id = chr(ord('A') + r)
-            top.setvar("extra", "Player two selected column:" + id)
-            row = self.get_next_open_row(board, r)
-            self.drop_piece(board, row, r, oppSymbol)
-            rec_data = self.flip_board(board)
-            top.setvar('grid', rec_data)
+            self.top.setvar("extra", "Player two selected column:" + id)
+            row = self.get_next_open_row(self.board, r)
+            self.drop_piece(self.board, row, r, self.OppSymbol)
+            rec_data = self.flip_board(self.board)
+            self.top.setvar('grid', rec_data)
             self.enable_buttons()
-            if self.winning_move(board, oppSymbol):
+            if self.winning_move(self.board, self.OppSymbol):
                 self.disable_buttons()
-                top.setvar("extra", oppSymbol + " wins!")
+                self.top.setvar("extra", self.OppSymbol + " wins!")
                 time.sleep(3)
-                game_over = True
+                self.game_over = True
         else:
-            top.setvar("extra", oppSymbol + " picked an invalid column.")
+            self.top.setvar("extra", self.OppSymbol + " picked an invalid column.")
             pass
 
 
