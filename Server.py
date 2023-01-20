@@ -2,7 +2,7 @@ import socket
 import threading
 
 server=socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
-server.bind(("localhost", 2046)) 
+server.bind(("localhost", 3006)) 
 server.listen(5) #Allow up to 5 queued connections
 
 def encoder(client_one, client_two):
