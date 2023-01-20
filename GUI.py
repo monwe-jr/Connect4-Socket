@@ -24,8 +24,8 @@ class GUI:
             
 
     # disables buttons
-    def disable_buttons(self):
-        if self == self.top_one:
+    def disable_buttons(self, piece):
+        if piece == self.piece_one:
             for i in range(7):
                 id = chr(ord('A') + i)
                 button = self.top_one.children['b_' + id]
@@ -38,8 +38,8 @@ class GUI:
 
 
     # enables buttons
-    def enable_buttons(self):
-        if self == self.top_one:
+    def enable_buttons(self, piece):
+        if piece == self.piece_one:
             for i in range(7):
                 id = chr(ord('A') + i)
                 button = self.top_one.children['b_' + id]
@@ -187,15 +187,14 @@ class GUI:
                 self.top_two.setvar("grid", response)
                 time.sleep(0.5)
                 if self.winning_move(self.board, piece):
-                    self.top_one.setvar("extra",  " You win!")
-                    self.top_two.setvar("extra",  " X wins!")
+                    self.top_one.setvar("extra",  "You win!")
+                    self.top_two.setvar("extra",  "X wins!")
                     time.sleep(3)
                     self.game_over = True
-                    # self.client_one.end()
-                    # self.client_two.end()
+                    self.client.end()
             else:
-                self.top_one.setvar("extra", " You picked an invalid column!")
-                self.top_two.setvar("extra", " X picked an invalid column. Your turn.")
+                self.top_one.setvar("extra", "You picked an invalid column!")
+                self.top_two.setvar("extra", "X picked an invalid column. Your turn.")
                 pass
         else:
             if self.is_valid_location(self.board, selection):
@@ -211,14 +210,13 @@ class GUI:
                 self.top_one.setvar('grid', response)
                 time.sleep(0.5)
                 if self.winning_move(self.board, piece):
-                    self.top_two.setvar("extra",  " You win!")
-                    self.top_one.setvar("extra",  " O wins!")
+                    self.top_two.setvar("extra",  "You win!")
+                    self.top_one.setvar("extra",  "O wins!")
                     time.sleep(3)
                     self.game_over = True
-                    # self.client_one.end()
-                    # self.client_two.end()
+                    self.client.end() 
             else:
-                self.top_two.setvar("extra", " You picked an invalid column!")
-                self.top_one.setvar("extra", " O picked an invalid column. Your turn.")
+                self.top_two.setvar("extra", "You picked an invalid column!")
+                self.top_one.setvar("extra", "O picked an invalid column. Your turn.")
                 pass
         
