@@ -6,11 +6,9 @@ import numpy as np
 class GUI:
     global row_count
     global column_count 
-    client_one: Client
-    client_two: Client
+    client: Client
     row_count = 6
     column_count = 7
-
 
     def __init__(self, state, pOne, pTwo):
         self.game_over = state
@@ -18,9 +16,8 @@ class GUI:
         self.piece_two = pTwo
         self.board = self.create_board()
         self.top_one = self.gen_window("Player One", pOne)
-        self.top_two = self.gen_window("Player Two", pTwo)
-        self.client_one = Client(self.board)
-        self.client_two = Client(self.board)
+        self.top_two = self.gen_window("Player Two", pTwo) 
+        self.client = Client()
         while not self.game_over:
             self.top_one.mainloop()
             self.top_two.mainloop()
@@ -180,18 +177,22 @@ class GUI:
             if self.is_valid_location(self.board, selection):
                 id = chr(ord('A') + selection)
                 self.top_one.setvar("extra","you selected column:" + id)
+                self.top_two.setvar("extra","X selected column:" + id)
                 row = self.get_next_open_row(self.board, selection)
                 self.drop_piece(self.board, row, selection, piece)
-                self.board = self.flip_board(self.board)
-                rec_data = self.client_one.recieve()
-                self.top_one.setvar('grid', self.build_grid(rec_data))
+                rec_data = self.flip_board(self.board)
+                self.client.send(self.build_grid(rec_data))
+                response = self.client.recieve_from_one()
+                self.top_one.setvar('grid', response)
+                self.top_two.setvar("grid", response)
                 time.sleep(0.5)
                 if self.winning_move(self.board, piece):
-                    self.disable_buttons()
                     self.top_one.setvar("extra",  " You win!")
                     self.top_two.setvar("extra",  " X wins!")
                     time.sleep(3)
                     self.game_over = True
+                    # self.client_one.end()
+                    # self.client_two.end()
             else:
                 self.top_one.setvar("extra", " You picked an invalid column!")
                 self.top_two.setvar("extra", " X picked an invalid column. Your turn.")
@@ -200,18 +201,22 @@ class GUI:
             if self.is_valid_location(self.board, selection):
                 id = chr(ord('A') + selection)
                 self.top_two.setvar("extra","you selected column:" + id)
+                self.top_one.setvar("extra","O selected column:" + id)
                 row = self.get_next_open_row(self.board, selection)
                 self.drop_piece(self.board, row, selection, piece)
-                self.board = self.flip_board(self.board)
-                rec_data = self.client_two.recieve()
-                self.top_two.setvar('grid', self.build_grid(rec_data))
+                rec_data = self.flip_board(self.board)
+                self.client.send(self.build_grid(rec_data))
+                response = self.client.recieve_from_two()
+                self.top_two.setvar('grid', response)
+                self.top_one.setvar('grid', response)
                 time.sleep(0.5)
                 if self.winning_move(self.board, piece):
-                    self.disable_buttons()
                     self.top_two.setvar("extra",  " You win!")
                     self.top_one.setvar("extra",  " O wins!")
                     time.sleep(3)
                     self.game_over = True
+                    # self.client_one.end()
+                    # self.client_two.end()
             else:
                 self.top_two.setvar("extra", " You picked an invalid column!")
                 self.top_one.setvar("extra", " O picked an invalid column. Your turn.")
