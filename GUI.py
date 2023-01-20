@@ -1,23 +1,21 @@
-from Client import Client
 import tkinter 
-import time
 import numpy as np
 
 class GUI:
     global row_count
     global column_count 
-    client: Client
     row_count = 6
     column_count = 7
 
-    def __init__(self, state, pOne, pTwo):
+    def __init__(self, client_side, state, pOne, pTwo):
         self.game_over = state
         self.piece_one = pOne
         self.piece_two = pTwo
         self.board = self.create_board()
         self.top_one = self.gen_window("Player One", pOne)
         self.top_two = self.gen_window("Player Two", pTwo) 
-        self.client = Client()
+        self.clients = client_side
+        self.disable_buttons(self.piece_two)
         while not self.game_over:
             self.top_one.mainloop()
             self.top_two.mainloop()
@@ -48,7 +46,7 @@ class GUI:
             for i in range(7):
                 id = chr(ord('A') + i)
                 button = self.top_two.children['b_' + id]
-                button['state'] = tkinter.DISABLED
+                button['state'] = tkinter.NORMAL
 
 
     # closure function
@@ -96,24 +94,21 @@ class GUI:
                     return True
 
         # Check vertical locations for win
-        for c in range(column_count - 3):
-            for r in range(row_count):
-                if board[r][c] == piece and board[r + 1][c] == piece and board[r + 2][c] == piece and board[r + 3][
-                    c] == piece:
+        for c in range(column_count):
+            for r in range(row_count - 3):
+                if board[r][c] == piece and board[r + 1][c] == piece and board[r + 2][c] == piece and board[r + 3][c] == piece:
                     return True
 
             # Check positive diagonal locations for win
             for c in range(column_count - 3):
                 for r in range(row_count - 3):
-                    if board[r][c] == piece and board[r + 1][c + 1] == piece and board[r + 2][c + 2] == piece and \
-                            board[r + 3][c + 3] == piece:
+                    if board[r][c] == piece and board[r + 1][c + 1] == piece and board[r + 2][c + 2] == piece and board[r + 3][c + 3] == piece:
                         return True
 
             # Check negative diagonal locations for win
             for c in range(column_count - 3):
                 for r in range(3, row_count):
-                    if board[r][c] == piece and board[r - 1][c + 1] == piece and board[r - 2][c + 2] == piece and \
-                            board[r - 3][c + 3] == piece:
+                    if board[r][c] == piece and board[r - 1][c + 1] == piece and board[r - 2][c + 2] == piece and board[r - 3][c + 3] == piece:
                         return True
 
 
@@ -152,6 +147,16 @@ class GUI:
         return gridStr
 
 
+    def safety(self):
+        self.state = True
+        self.top_one.destroy()
+        self.top_two.destroy()
+
+
+    def destroy_grid(self):
+        self.top_one.destroy()
+        self.top_two.destroy()
+
     # generates the tkinter window with all the buttons
     def gen_window(self, title, piece):
         win = tkinter.Tk()
@@ -168,9 +173,11 @@ class GUI:
         win.setvar("grid", self.build_grid(self.board))
         win.resizable(False,False)
         win.title(title)
+        win.protocol("WM_DELETE_WINDOW",self.safety)
 
         return win
 
+               
 
     def insert(self, selection, piece):
         if piece == self.piece_one:
@@ -181,21 +188,25 @@ class GUI:
                 row = self.get_next_open_row(self.board, selection)
                 self.drop_piece(self.board, row, selection, piece)
                 rec_data = self.flip_board(self.board)
-                self.client.send(self.build_grid(rec_data))
-                response = self.client.recieve_from_one()
+                self.clients.send(self.build_grid(rec_data))
+                response = self.clients.recieve_from_one()
                 self.top_one.setvar('grid', response)
                 self.top_two.setvar("grid", response)
-                time.sleep(0.5)
                 if self.winning_move(self.board, piece):
+                    self.disable_buttons(self.piece_one)
+                    self.disable_buttons(self.piece_two)
                     self.top_one.setvar("extra",  "You win!")
                     self.top_two.setvar("extra",  "X wins!")
-                    time.sleep(3)
-                    self.game_over = True
-                    self.client.end()
+                    self.state= True
             else:
                 self.top_one.setvar("extra", "You picked an invalid column!")
                 self.top_two.setvar("extra", "X picked an invalid column. Your turn.")
                 pass
+
+            if not self.game_over:
+                self.disable_buttons(self.piece_one)
+                self.enable_buttons(self.piece_two)
+
         else:
             if self.is_valid_location(self.board, selection):
                 id = chr(ord('A') + selection)
@@ -204,19 +215,23 @@ class GUI:
                 row = self.get_next_open_row(self.board, selection)
                 self.drop_piece(self.board, row, selection, piece)
                 rec_data = self.flip_board(self.board)
-                self.client.send(self.build_grid(rec_data))
-                response = self.client.recieve_from_two()
+                self.clients.send(self.build_grid(rec_data))
+                response = self.clients.recieve_from_two()
                 self.top_two.setvar('grid', response)
                 self.top_one.setvar('grid', response)
-                time.sleep(0.5)
                 if self.winning_move(self.board, piece):
+                    self.disable_buttons(self.piece_one)
+                    self.disable_buttons(self.piece_two)
                     self.top_two.setvar("extra",  "You win!")
                     self.top_one.setvar("extra",  "O wins!")
-                    time.sleep(3)
-                    self.game_over = True
-                    self.client.end() 
-            else:
+                    self.state = True
+            else:    
                 self.top_two.setvar("extra", "You picked an invalid column!")
                 self.top_one.setvar("extra", "O picked an invalid column. Your turn.")
                 pass
+
+            if not self.game_over:
+                self.disable_buttons(self.piece_two)
+                self.enable_buttons(self.piece_one)
+            
         
