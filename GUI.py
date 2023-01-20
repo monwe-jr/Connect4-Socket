@@ -7,8 +7,8 @@ class GUI:
     row_count = 6
     column_count = 7
 
-    def __init__(self, client_side, state, pOne, pTwo):
-        self.game_over = state
+    def __init__(self, client_side, pOne, pTwo):
+        self.game_over = False
         self.piece_one = pOne
         self.piece_two = pTwo
         self.board = self.create_board()
@@ -146,16 +146,25 @@ class GUI:
 
         return gridStr
 
+    
+    # returns state of the game 
+    def get_state(self):
+        return self.game_over
 
+
+    # destroys both windows if one is closed 
     def safety(self):
-        self.state = True
+        self.game_over = True
         self.top_one.destroy()
         self.top_two.destroy()
+        exit()
 
 
+    # destroys windows when called 
     def destroy_grid(self):
         self.top_one.destroy()
         self.top_two.destroy()
+
 
     # generates the tkinter window with all the buttons
     def gen_window(self, title, piece):
@@ -176,8 +185,7 @@ class GUI:
         win.protocol("WM_DELETE_WINDOW",self.safety)
 
         return win
-
-               
+      
 
     def insert(self, selection, piece):
         if piece == self.piece_one:
@@ -197,7 +205,7 @@ class GUI:
                     self.disable_buttons(self.piece_two)
                     self.top_one.setvar("extra",  "You win!")
                     self.top_two.setvar("extra",  "X wins!")
-                    self.state= True
+                    self.game_over = True
             else:
                 self.top_one.setvar("extra", "You picked an invalid column!")
                 self.top_two.setvar("extra", "X picked an invalid column. Your turn.")
@@ -224,7 +232,7 @@ class GUI:
                     self.disable_buttons(self.piece_two)
                     self.top_two.setvar("extra",  "You win!")
                     self.top_one.setvar("extra",  "O wins!")
-                    self.state = True
+                    self.game_over = True
             else:    
                 self.top_two.setvar("extra", "You picked an invalid column!")
                 self.top_one.setvar("extra", "O picked an invalid column. Your turn.")
