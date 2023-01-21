@@ -6,7 +6,7 @@ class GUI:
     global column_count 
     row_count = 6
     column_count = 7
-
+    
     def __init__(self, client_side, pOne, pTwo):
         self.game_over = False
         self.piece_one = pOne
@@ -146,12 +146,12 @@ class GUI:
 
         return gridStr
 
-    
-    # returns state of the game 
+
+     # returns state of the game 
     def get_state(self):
         return self.game_over
 
-
+    
     # destroys both windows if one is closed 
     def safety(self):
         self.game_over = True
@@ -242,4 +242,3 @@ class GUI:
                 self.disable_buttons(self.piece_two)
                 self.enable_buttons(self.piece_one)
             
-        
